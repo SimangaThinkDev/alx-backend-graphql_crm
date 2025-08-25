@@ -3,3 +3,10 @@
 crm_env
 # -------------------
 
+venv/
+__pycache__/
+*.pyc
+db.sqlite3
+*.sqlite3
+.env
+
