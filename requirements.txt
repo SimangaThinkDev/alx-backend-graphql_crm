@@ -3,3 +3,5 @@ django-filter
 graphene_django
 gql 
 aiohttp
+django-crontab
+logging
