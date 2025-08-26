@@ -37,11 +37,10 @@ query = gql(
 result = client.execute( query )
 
 # Process the result
-logging.basicConfig( filename="/tmp/order_reminders_crontab.txt" )
+logging.basicConfig( filename="/tmp/order_reminders_log.txt" )
 
 # Log the order details to order_reminders_crontab.txt
 # with open( "order_reminders_crontab.txt", "w" ) as file:
 for order in result['orders']:
     logging.info( f"{datetime.now().isoformat()} - Order ID: {order['id']}, Customer Email: {order['customer']['email']}" )
 
-    
