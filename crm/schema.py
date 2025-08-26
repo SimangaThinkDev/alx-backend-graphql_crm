@@ -5,12 +5,15 @@ from crm.models import Customer, Product, Order
 from crm.filters import CustomerFilter, ProductFilter, OrderFilter
 from .models import Customer, Product, Order
 from django.core.exceptions import ValidationError
+
+
 class CustomerType(DjangoObjectType):
     class Meta:
         model = Customer
         filterset_class = CustomerFilter
         interfaces = (graphene.relay.Node,)
         fields = "__all__"
+
 
 class ProductType(DjangoObjectType):
     class Meta:
@@ -19,12 +22,15 @@ class ProductType(DjangoObjectType):
         interfaces = (graphene.relay.Node,)
         fields = "__all__"
 
+
 class OrderType(DjangoObjectType):
     class Meta:
         model = Order
         filterset_class = OrderFilter
         interfaces = (graphene.relay.Node,)
         fields = "__all__"
+
+
 class CreateCustomer(graphene.Mutation):
     class Arguments:
         name = graphene.String(required=True)
@@ -40,6 +46,8 @@ class CreateCustomer(graphene.Mutation):
         customer = Customer(name=name, email=email, phone=phone)
         customer.save()
         return CreateCustomer(customer=customer, message="Customer created successfully.")
+
+
 class BulkCreateCustomers(graphene.Mutation):
     class Arguments:
         customers = graphene.List(lambda: CustomerInput)
@@ -59,10 +67,13 @@ class BulkCreateCustomers(graphene.Mutation):
             created.append(customer)
         return BulkCreateCustomers(created_customers=created, errors=errors)
 
+
 class CustomerInput(graphene.InputObjectType):
     name = graphene.String(required=True)
     email = graphene.String(required=True)
     phone = graphene.String()
+
+
 class CreateProduct(graphene.Mutation):
     class Arguments:
         name = graphene.String(required=True)
@@ -79,6 +90,8 @@ class CreateProduct(graphene.Mutation):
         product = Product(name=name, price=price, stock=stock)
         product.save()
         return CreateProduct(product=product)
+
+
 class CreateOrder(graphene.Mutation):
     class Arguments:
         customer_id = graphene.ID(required=True)
@@ -106,11 +119,7 @@ class CreateOrder(graphene.Mutation):
         order.save()
 
         return CreateOrder(order=order)
-class Mutation(graphene.ObjectType):
-    create_customer = CreateCustomer.Field()
-    bulk_create_customers = BulkCreateCustomers.Field()
-    create_product = CreateProduct.Field()
-    create_order = CreateOrder.Field()
+
 
 class Query(graphene.ObjectType):
     customer = graphene.relay.Node.Field(CustomerType)
@@ -132,10 +141,44 @@ class Query(graphene.ObjectType):
         qs = Product.objects.all()
         if order_by:
             qs = qs.order_by(*order_by)
-        return qs
 
     def resolve_all_orders(self, info, order_by=None, **kwargs):
         qs = Order.objects.all()
         if order_by:
             qs = qs.order_by(*order_by)
         return qs
+
+
+class UpdateLowStockProducts(graphene.Mutation):
+    """
+    class Arguments:
+        customer_id = graphene.ID(required=True)
+        product_ids = graphene.List(graphene.ID, required=True)
+    """
+    updated_products = graphene.List(ProductType)
+    message = graphene.String()
+
+    def mutate(self, info):
+        # Query products with stock < 10
+        low_stock_products = Product.objects.filter(stock__lt=10)
+        updated_products = []
+        for product in low_stock_products:
+            # Increment stock by 10 (simulate restocking).
+            product.stock += 10
+            product.save()
+            updated_products.append(product)
+
+        if updated_products:
+            message = f"Successfully updated stock for {len(updated_products)} products."
+        else:
+            message = "No products found with low stock."
+
+        return UpdateLowStockProducts(updated_products=updated_products, message=message)
+
+
+class Mutation(graphene.ObjectType):
+    create_customer = CreateCustomer.Field()
+    bulk_create_customers = BulkCreateCustomers.Field()
+    create_product = CreateProduct.Field()
+    create_order = CreateOrder.Field()
+    update_low_stock_products = UpdateLowStockProducts.Field()

@@ -5,3 +5,4 @@ gql
 aiohttp
 django-crontab
 logging
+gql[requests]
