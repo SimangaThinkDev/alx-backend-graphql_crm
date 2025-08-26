@@ -5,7 +5,7 @@ from crm.models import Customer, Product, Order
 from crm.filters import CustomerFilter, ProductFilter, OrderFilter
 from .models import Customer, Product, Order
 from django.core.exceptions import ValidationError
-
+from crm.models import Product
 
 class CustomerType(DjangoObjectType):
     class Meta:
