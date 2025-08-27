@@ -176,6 +176,32 @@ class UpdateLowStockProducts(graphene.Mutation):
         return UpdateLowStockProducts(updated_products=updated_products, message=message)
 
 
+class Query(graphene.ObjectType):
+    customer = graphene.relay.Node.Field(CustomerType)
+    all_customers = DjangoFilterConnectionField(CustomerType, order_by=graphene.List(of_type=graphene.String))
+
+    product = graphene.relay.Node.Field(ProductType)
+    all_products = DjangoFilterConnectionField(ProductType, order_by=graphene.List(of_type=graphene.String))
+
+    order = graphene.relay.Node.Field(OrderType)
+    all_orders = DjangoFilterConnectionField(OrderType, order_by=graphene.List(of_type=graphene.String))
+
+    # New fields for aggregated data
+    total_customers = graphene.Int()
+    total_orders = graphene.Int()
+    total_revenue = graphene.Float()
+
+    def resolve_total_customers(self, info):
+        return Customer.objects.count()
+
+    def resolve_total_orders(self, info):
+        return Order.objects.count()
+
+    def resolve_total_revenue(self, info):
+        result = Order.objects.aggregate(total_revenue=Sum('total_amount'))
+        return result['total_revenue'] if result['total_revenue'] else 0.0
+
+# ------------------------------ Always at the bottom -----------------------------------------
 class Mutation(graphene.ObjectType):
     create_customer = CreateCustomer.Field()
     bulk_create_customers = BulkCreateCustomers.Field()
