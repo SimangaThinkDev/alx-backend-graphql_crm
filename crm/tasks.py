@@ -7,10 +7,11 @@ from gql import (
     Client,
     GraphQLRequest
 )
+import requests
 
 
 @shared_task
-def generate_crm_report(arg1, arg2):
+def generate_crm_report():
     request = gql(
         """
             query {
@@ -45,3 +46,7 @@ def generate_crm_report(arg1, arg2):
                     {number_of_orders} orders, \
                         {current_total_revenue} revenue." )
     
+
+
+if __name__ == "__main__":
+    pass
