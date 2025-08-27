@@ -18,6 +18,7 @@ INSTALLED_APPS = [
     'django_filters',
     'crm',
     'django_crontab',
+    'django_celery_beat',
 ]
 
 MIDDLEWARE = [
@@ -138,8 +139,32 @@ GRAPHENE = {
     'SCHEMA': 'graphql_crm.schema.schema'
 }
 
-# Alive logging
+# ------------------------- Alive logging -------------------------------------
+
 CRONJOBS = [
     ('*/5 * * * *', 'crm.cron.log_crm_heartbeat'),
     ('0 */12 * * *', 'crm.cron.update_low_stock'),
 ]
+
+# -----------------------------------------------------------------------------
+
+# -------------------------- CELERY SET-UP ------------------------------------
+
+import crontab
+
+CELERY_BROKER_URL = 'redis://localhost:6379/0'  # Or your broker URL
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0' # For storing task results
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'Africa/Johannesburg'
+
+CELERY_BEAT_SCHEDULE = {
+    'generate-crm-report': {
+        'task': 'crm.tasks.generate_crm_report',
+        'schedule': crontab(day_of_week='mon', hour=6, minute=0),
+    },
+}
+
+# -----------------------------------------------------------------------------
+

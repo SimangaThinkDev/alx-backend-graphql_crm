@@ -4,5 +4,7 @@ graphene_django
 gql 
 aiohttp
 django-crontab
-logging
 gql[requests]
+crontab
+celery
+django-celery-beat
